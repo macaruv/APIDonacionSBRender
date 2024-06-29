@@ -30,6 +30,7 @@ public class DonadorController {
         }
     }
 
+
     @GetMapping("/{id}")
     public ResponseEntity<Donador> getDonadorById(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @PathVariable Integer id) {
         Donador donador = donadorService.getDonadorById(centroId, intermediarioId, id);
