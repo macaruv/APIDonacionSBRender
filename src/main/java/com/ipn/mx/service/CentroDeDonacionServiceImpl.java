@@ -50,9 +50,7 @@ public class CentroDeDonacionServiceImpl implements CentroDeDonacionService {
 
     @Override
     public void saveCentro(CentroDeDonacion centro) {
-        if (centro.getId() == null) {
-            centro.setId(getNextId());
-        }
+        centro.setId(getNextId()); // Asignar siempre un nuevo ID
         db.collection("CentroDeDonacion").document(String.valueOf(centro.getId())).set(centro);
     }
 
@@ -92,7 +90,7 @@ public class CentroDeDonacionServiceImpl implements CentroDeDonacionService {
         try {
             DocumentSnapshot document = future.get();
             if (document.exists()) {
-            	centro.setId(id);
+                centro.setId(id);
                 docRef.set(centro);
                 return centro;
             }
