@@ -49,9 +49,12 @@ public class CentroDeDonacionServiceImpl implements CentroDeDonacionService {
     }
 
     @Override
-    public void saveCentro(CentroDeDonacion centro) {
-        centro.setId(getNextId()); // Asignar siempre un nuevo ID
+    public CentroDeDonacion saveCentro(CentroDeDonacion centro) {
+        // Siempre asignar un nuevo ID, ignorando cualquier ID que venga en la solicitud
+        Integer newId = getNextId();
+        centro.setId(newId);
         db.collection("CentroDeDonacion").document(String.valueOf(centro.getId())).set(centro);
+        return centro;
     }
 
     @Override

@@ -20,9 +20,9 @@ public class CentroDeDonacionController {
     @PostMapping
     public ResponseEntity<CentroDeDonacion> createCentro(@RequestBody CentroDeDonacion centro) {
         try {
-            centro.setId(null); // Se asegura de que el ID sea asignado automáticamente
-            centroDeDonacionService.saveCentro(centro);
-            return new ResponseEntity<>(centro, HttpStatus.CREATED);
+            // No asignar ID desde el request, dejar que el servicio lo maneje
+            CentroDeDonacion savedCentro = centroDeDonacionService.saveCentro(centro);
+            return new ResponseEntity<>(savedCentro, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -41,8 +41,8 @@ public class CentroDeDonacionController {
     @PutMapping("/{id}")
     public ResponseEntity<CentroDeDonacion> updateCentro(@PathVariable Integer id, @RequestBody CentroDeDonacion centro) {
         try {
-            centroDeDonacionService.updateCentro(id, centro);
-            return new ResponseEntity<>(centro, HttpStatus.OK);
+            CentroDeDonacion updatedCentro = centroDeDonacionService.updateCentro(id, centro);
+            return new ResponseEntity<>(updatedCentro, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

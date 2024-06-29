@@ -1,10 +1,7 @@
 package com.ipn.mx.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.google.cloud.firestore.annotation.PropertyName;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,21 +11,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonPropertyOrder({"id", "nombre", "direccion", "contacto"})
+@JsonPropertyOrder({"id", "Nombre", "Direccion", "Contacto"})
 public class CentroDeDonacion {
+    @JsonProperty("id")
+    private Integer id;
 
     @JsonProperty("Nombre")
-    @PropertyName("Nombre")
     private String nombre;
 
     @JsonProperty("Direccion")
-    @PropertyName("Direccion")
     private String direccion;
 
     @JsonProperty("Contacto")
-    @PropertyName("Contacto")
     private String contacto;
-    
-//    @JsonIgnore
-    private Integer id;
 }
