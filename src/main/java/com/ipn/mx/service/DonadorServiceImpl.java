@@ -6,13 +6,14 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.Donador;
 import com.ipn.mx.entity.Persona;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class DonadorServiceImpl implements DonadorService {
@@ -22,7 +23,7 @@ public class DonadorServiceImpl implements DonadorService {
     @Autowired
     private PersonaService personaService;
 
-    @PostConstruct
+    @Bean
     public void initializeDonadorCounter() {
         DocumentReference counterRef = db.collection("GlobalCounters").document("DonadorCounter");
         counterRef.set(new HashMap<String, Object>() {{
@@ -74,29 +75,23 @@ public class DonadorServiceImpl implements DonadorService {
             throw new RuntimeException("Error al verificar el PersonaId", e);
         }
 
-        // Validar que los BeneficiarioIds pertenezcan al rol de beneficiario y obtener los IDs correctos
-        List<Integer> validBeneficiarioIds = new ArrayList<>();
-        for (Integer beneficiarioId : donador.getBeneficiarioIds()) {
-            DocumentReference beneficiarioRef = db.collection("CentroDeDonacion").document(String.valueOf(centroId))
-                    .collection("Intermediario").document(String.valueOf(intermediarioId))
-                    .collection("Beneficiario").document(String.valueOf(beneficiarioId));
-            ApiFuture<DocumentSnapshot> futureBeneficiario = beneficiarioRef.get();
-            try {
-                DocumentSnapshot beneficiarioDocument = futureBeneficiario.get();
-                if (beneficiarioDocument.exists()) {
-                    validBeneficiarioIds.add(beneficiarioId);
+        // Verificar y establecer los BeneficiarioIds
+        if (donador.getBeneficiarioIds() != null) {
+            for (Integer beneficiarioId : donador.getBeneficiarioIds()) {
+                DocumentReference beneficiarioRef = db.collection("CentroDeDonacion").document(String.valueOf(centroId))
+                        .collection("Intermediario").document(String.valueOf(intermediarioId))
+                        .collection("Beneficiario").document(String.valueOf(beneficiarioId));
+                ApiFuture<DocumentSnapshot> beneficiarioFuture = beneficiarioRef.get();
+                try {
+                    if (!beneficiarioFuture.get().exists()) {
+                        throw new IllegalArgumentException("El BeneficiarioId " + beneficiarioId + " no existe.");
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Error al verificar los BeneficiarioIds", e);
                 }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Error al verificar los BeneficiarioIds", e);
             }
         }
-
-        if (validBeneficiarioIds.size() != donador.getBeneficiarioIds().size()) {
-            throw new IllegalArgumentException("Uno o más BeneficiarioIds no corresponden a beneficiarios válidos.");
-        }
-
-        donador.setBeneficiarioIds(validBeneficiarioIds);
 
         db.collection("CentroDeDonacion").document(String.valueOf(centroId))
             .collection("Intermediario").document(String.valueOf(intermediarioId))
@@ -263,4 +258,5 @@ public class DonadorServiceImpl implements DonadorService {
         }
         return donadores;
     }
+
 }

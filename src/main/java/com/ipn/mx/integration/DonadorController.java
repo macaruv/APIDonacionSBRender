@@ -20,20 +20,12 @@ public class DonadorController {
     @PostMapping
     public ResponseEntity<Donador> createDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @RequestBody Donador donador) {
         try {
-            // Asegurar que el ID sea asignado automáticamente
-            donador.setId(null);
-
-            // Validar campos requeridos
-            if (donador.getTipoDeSangre() == null || donador.getUltimaVacuna() == null) {
-                return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-            }
-
+            donador.setId(null); // Se asegura de que el ID sea asignado automáticamente
             Donador savedDonador = donadorService.saveDonador(centroId, intermediarioId, donador);
             return new ResponseEntity<>(savedDonador, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            e.printStackTrace();
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -45,16 +37,6 @@ public class DonadorController {
             return new ResponseEntity<>(donador, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Donador>> getAllDonadores(@PathVariable Integer centroId, @PathVariable Integer intermediarioId) {
-        List<Donador> donadores = donadorService.getAllDonadores(centroId, intermediarioId);
-        if (!donadores.isEmpty()) {
-            return new ResponseEntity<>(donadores, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
 
@@ -81,6 +63,16 @@ public class DonadorController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Donador>> getAllDonadores(@PathVariable Integer centroId, @PathVariable Integer intermediarioId) {
+        List<Donador> donadores = donadorService.getAllDonadores(centroId, intermediarioId);
+        if (!donadores.isEmpty()) {
+            return new ResponseEntity<>(donadores, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
 
