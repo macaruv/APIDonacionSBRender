@@ -15,18 +15,22 @@ import java.net.URL;
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.config.path}")
+    @Value("${firebase.config.url}")
     private String firebaseConfigUrl;
 
     @Bean
     public FirebaseApp createFirebaseApp() throws Exception {
-        InputStream serviceAccount = new URL(firebaseConfigUrl).openStream();
+        try (InputStream serviceAccount = new URL(firebaseConfigUrl).openStream()) {
 
-        FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
 
-        return FirebaseApp.initializeApp(options);
+            return FirebaseApp.initializeApp(options);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to initialize FirebaseApp", e);
+        }
     }
 
     @Bean
