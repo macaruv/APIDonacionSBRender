@@ -1,7 +1,7 @@
 package com.ipn.mx.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.google.cloud.firestore.annotation.PropertyName;
 
 import lombok.AllArgsConstructor;
@@ -14,21 +14,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class Intermediario {
-	@JsonIgnore
+
+    @JsonProperty(value = "id", access = Access.READ_ONLY)
+    @PropertyName("id")
     private Integer id;
-	
-	@JsonProperty("Nombre")
+
+    @JsonProperty("Nombre")
     @PropertyName("Nombre")
     private String nombre;
-	
-	@JsonProperty("Contacto")
+
+    @JsonProperty("Contacto")
     @PropertyName("Contacto")
     private String contacto;
-	
-	@JsonProperty("url")
+
+    @JsonProperty("url")
     @PropertyName("url")
     private String url;
-	
-	@JsonIgnore
+
+    @JsonProperty(access = Access.READ_ONLY)
+    @PropertyName("centroId")
     private Integer centroId;
 }

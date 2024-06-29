@@ -20,9 +20,9 @@ public class IntermediarioController {
     @PostMapping
     public ResponseEntity<Intermediario> createIntermediario(@PathVariable Integer centroId, @RequestBody Intermediario intermediario) {
         try {
-        	intermediario.setId(null); // Se asegura de que el ID sea asignado automáticamente
-            intermediarioService.saveIntermediario(centroId, intermediario);
-            return new ResponseEntity<>(intermediario, HttpStatus.CREATED);
+            intermediario.setId(null); // Se asegura de que el ID sea asignado automáticamente
+            Intermediario createdIntermediario = intermediarioService.saveIntermediario(centroId, intermediario);
+            return new ResponseEntity<>(createdIntermediario, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -41,8 +41,8 @@ public class IntermediarioController {
     @PutMapping("/{id}")
     public ResponseEntity<Intermediario> updateIntermediario(@PathVariable Integer centroId, @PathVariable Integer id, @RequestBody Intermediario intermediario) {
         try {
-            intermediarioService.updateIntermediario(centroId, id, intermediario);
-            return new ResponseEntity<>(intermediario, HttpStatus.OK);
+            Intermediario updatedIntermediario = intermediarioService.updateIntermediario(centroId, id, intermediario);
+            return new ResponseEntity<>(updatedIntermediario, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

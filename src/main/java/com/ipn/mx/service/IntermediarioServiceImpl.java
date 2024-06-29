@@ -1,12 +1,7 @@
 package com.ipn.mx.service;
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.*;
 import com.ipn.mx.entity.Intermediario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,13 +50,14 @@ public class IntermediarioServiceImpl implements IntermediarioService {
     }
 
     @Override
-    public void saveIntermediario(Integer centroId, Intermediario intermediario) {
+    public Intermediario saveIntermediario(Integer centroId, Intermediario intermediario) {
         if (intermediario.getId() == null) {
             intermediario.setId(getNextId());
         }
         intermediario.setCentroId(centroId); // Asignar el centroId al intermediario
         db.collection("CentroDeDonacion").document(String.valueOf(centroId))
             .collection("Intermediario").document(String.valueOf(intermediario.getId())).set(intermediario);
+        return intermediario;
     }
 
     @Override

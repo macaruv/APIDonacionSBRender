@@ -4,7 +4,7 @@ import com.ipn.mx.entity.Intermediario;
 import java.util.List;
 
 public interface IntermediarioService {
-    void saveIntermediario(Integer centroId, Intermediario intermediario);
+    Intermediario saveIntermediario(Integer centroId, Intermediario intermediario);
     Intermediario getIntermediarioById(Integer centroId, Integer id);
     List<Intermediario> getAllIntermediarios(Integer centroId);
     Intermediario updateIntermediario(Integer centroId, Integer id, Intermediario intermediario);

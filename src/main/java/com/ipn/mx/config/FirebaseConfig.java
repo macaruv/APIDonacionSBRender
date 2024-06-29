@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Configuration
@@ -41,23 +42,37 @@ public class FirebaseConfig {
     @Bean
     public Firestore firestore(FirebaseApp firebaseApp) {
         Firestore db = FirestoreClient.getFirestore(firebaseApp);
-        initializeGlobalCounter(db);
+        initializeGlobalCounters(db);
         return db;
     }
 
-    private void initializeGlobalCounter(Firestore db) {
-        DocumentReference counterRef = db.collection("GlobalCounters").document("CentroDeDonacionCounter");
+    private void initializeGlobalCounters(Firestore db) {
+        String[] counterNames = {
+            "CentroDeDonacionCounter", 
+            "IntermediarioCounter", 
+            "BeneficiarioCounter", 
+            "DonadorCounter", 
+            "PersonaCounter"
+        };
+        
+        for (String counterName : counterNames) {
+            initializeGlobalCounter(db, counterName);
+        }
+    }
+
+    private void initializeGlobalCounter(Firestore db, String counterName) {
+        DocumentReference counterRef = db.collection("GlobalCounters").document(counterName);
         try {
             DocumentSnapshot snapshot = counterRef.get().get();
             if (!snapshot.exists()) {
-                counterRef.set(new HashMap<String, Object>() {{
-                    put("nextId", 1);
-                }});
-                System.out.println("Global Counter initialized.");
+                Map<String, Object> initialData = new HashMap<>();
+                initialData.put("nextId", 1);
+                counterRef.set(initialData);
+                System.out.println("Global Counter " + counterName + " initialized.");
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            throw new RuntimeException("Failed to initialize global counter", e);
+            throw new RuntimeException("Failed to initialize global counter " + counterName, e);
         }
     }
 }
