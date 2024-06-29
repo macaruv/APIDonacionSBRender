@@ -30,7 +30,6 @@ public class DonadorController {
         }
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<Donador> getDonadorById(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @PathVariable Integer id) {
         Donador donador = donadorService.getDonadorById(centroId, intermediarioId, id);
@@ -38,6 +37,16 @@ public class DonadorController {
             return new ResponseEntity<>(donador, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Donador>> getAllDonadores(@PathVariable Integer centroId, @PathVariable Integer intermediarioId) {
+        List<Donador> donadores = donadorService.getAllDonadores(centroId, intermediarioId);
+        if (!donadores.isEmpty()) {
+            return new ResponseEntity<>(donadores, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
 
@@ -64,16 +73,6 @@ public class DonadorController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Donador>> getAllDonadores(@PathVariable Integer centroId, @PathVariable Integer intermediarioId) {
-        List<Donador> donadores = donadorService.getAllDonadores(centroId, intermediarioId);
-        if (!donadores.isEmpty()) {
-            return new ResponseEntity<>(donadores, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
 

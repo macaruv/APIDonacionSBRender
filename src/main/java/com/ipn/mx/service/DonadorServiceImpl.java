@@ -9,11 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 @Service
 public class DonadorServiceImpl implements DonadorService {
@@ -23,11 +23,11 @@ public class DonadorServiceImpl implements DonadorService {
     @Autowired
     private PersonaService personaService;
 
-    @Bean
+    @PostConstruct
     public void initializeDonadorCounter() {
         DocumentReference counterRef = db.collection("GlobalCounters").document("DonadorCounter");
         counterRef.set(new HashMap<String, Object>() {{
-            put("nextId", 1); // Inicializar con 1 para empezar
+            put("nextId", 1);
         }});
         System.out.println("Global Counter para Donador inicializado.");
     }
@@ -55,42 +55,33 @@ public class DonadorServiceImpl implements DonadorService {
         if (donador.getId() == null) {
             donador.setId(getNextId());
         }
-
         // Validar que el PersonaId sea de un donador
-        if (donador.getPersonaId() != null) {
-            Persona persona = personaService.getPersonaById(donador.getPersonaId());
-            if (persona == null || !"Donador".equals(persona.getRol())) {
-                throw new IllegalArgumentException("El PersonaId proporcionado no es válido o no corresponde a un donador.");
-            }
+        Persona persona = personaService.getPersonaById(donador.getPersonaId());
+        if (persona == null || !"Donador".equals(persona.getRol())) {
+            throw new IllegalArgumentException("El PersonaId proporcionado no es válido o no corresponde a un donador.");
         }
 
-        // Validar que los BeneficiarioIds existan
-        if (donador.getBeneficiarioIds() != null) {
-            List<Integer> validBeneficiarioIds = new ArrayList<>();
-            for (Integer beneficiarioId : donador.getBeneficiarioIds()) {
-                DocumentReference beneficiarioRef = db.collection("CentroDeDonacion").document(String.valueOf(centroId))
-                        .collection("Intermediario").document(String.valueOf(intermediarioId))
-                        .collection("Beneficiario").document(String.valueOf(beneficiarioId));
-                ApiFuture<DocumentSnapshot> futureBeneficiario = beneficiarioRef.get();
-                try {
-                    DocumentSnapshot beneficiarioDocument = futureBeneficiario.get();
-                    if (beneficiarioDocument.exists()) {
-                        validBeneficiarioIds.add(beneficiarioId);
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException("Error al verificar los BeneficiarioIds", e);
-                }
+        // Verificar que el PersonaId no esté asociado a otro donador
+        DocumentReference personaMapRef = db.collection("PersonaDonadorMap").document(String.valueOf(donador.getPersonaId()));
+        ApiFuture<DocumentSnapshot> future = personaMapRef.get();
+        try {
+            DocumentSnapshot document = future.get();
+            if (document.exists()) {
+                throw new IllegalArgumentException("El PersonaId proporcionado ya está asociado a otro donador.");
             }
-            if (validBeneficiarioIds.size() != donador.getBeneficiarioIds().size()) {
-                throw new IllegalArgumentException("Uno o más BeneficiarioIds no corresponden a beneficiarios válidos.");
-            }
-            donador.setBeneficiarioIds(validBeneficiarioIds);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error al verificar el PersonaId", e);
         }
 
         db.collection("CentroDeDonacion").document(String.valueOf(centroId))
-                .collection("Intermediario").document(String.valueOf(intermediarioId))
-                .collection("Donador").document(String.valueOf(donador.getId())).set(donador);
+            .collection("Intermediario").document(String.valueOf(intermediarioId))
+            .collection("Donador").document(String.valueOf(donador.getId())).set(donador);
+
+        // Guardar la asociación en PersonaDonadorMap
+        HashMap<String, Object> personaMap = new HashMap<>();
+        personaMap.put("donadorId", donador.getId());
+        personaMapRef.set(personaMap);
 
         return donador;
     }
