@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
 @Configuration
@@ -20,13 +21,21 @@ public class FirebaseConfig {
 
     @Bean
     public FirebaseApp createFirebaseApp() throws Exception {
-        try (InputStream serviceAccount = new URL(firebaseConfigUrl).openStream()) {
+        try {
+            URL url = new URL(firebaseConfigUrl);
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            int responseCode = urlConnection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new RuntimeException("Failed to fetch Firebase config file from URL: " + firebaseConfigUrl);
+            }
+            
+            try (InputStream serviceAccount = urlConnection.getInputStream()) {
+                FirebaseOptions options = FirebaseOptions.builder()
+                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .build();
 
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
-
-            return FirebaseApp.initializeApp(options);
+                return FirebaseApp.initializeApp(options);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to initialize FirebaseApp", e);
