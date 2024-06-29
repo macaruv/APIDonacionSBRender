@@ -10,9 +10,10 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.Intermediario;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,9 +22,14 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class IntermediarioServiceImpl implements IntermediarioService {
 
-    private final Firestore db = FirestoreClient.getFirestore();
-    
-    @Bean
+    private final Firestore db;
+
+    @Autowired
+    public IntermediarioServiceImpl(Firestore db) {
+        this.db = db;
+    }
+
+    @PostConstruct
     public void initializeIntermediarioCounter() {
         DocumentReference counterRef = db.collection("GlobalCounters").document("IntermediarioCounter");
         counterRef.set(new HashMap<String, Object>() {{
@@ -49,7 +55,7 @@ public class IntermediarioServiceImpl implements IntermediarioService {
             throw new RuntimeException("Error al obtener el siguiente ID", e);
         }
     }
-    
+
     @Override
     public void saveIntermediario(Integer centroId, Intermediario intermediario) {
         if (intermediario.getId() == null) {
