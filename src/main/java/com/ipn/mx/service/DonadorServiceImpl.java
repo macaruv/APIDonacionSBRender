@@ -6,7 +6,6 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.Donador;
 import com.ipn.mx.entity.Persona;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -27,7 +26,7 @@ public class DonadorServiceImpl implements DonadorService {
     public void initializeDonadorCounter() {
         DocumentReference counterRef = db.collection("GlobalCounters").document("DonadorCounter");
         counterRef.set(new HashMap<String, Object>() {{
-            put("nextId", 1);
+            put("nextId", 1); // Inicializar con 1 para empezar
         }});
         System.out.println("Global Counter para Donador inicializado.");
     }
@@ -86,7 +85,6 @@ public class DonadorServiceImpl implements DonadorService {
 
         return donador;
     }
-
 
     @Override
     public Donador getDonadorById(Integer centroId, Integer intermediarioId, Integer id) {
@@ -241,5 +239,4 @@ public class DonadorServiceImpl implements DonadorService {
         }
         return donadores;
     }
-
 }
