@@ -1,7 +1,6 @@
 package com.ipn.mx.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonPropertyOrder({"id", "Nombre", "Direccion", "Contacto"})
 public class CentroDeDonacion {
-    @JsonProperty("id")
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Integer id;
 
     @JsonProperty("Nombre")

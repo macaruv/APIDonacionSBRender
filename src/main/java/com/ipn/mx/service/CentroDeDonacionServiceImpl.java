@@ -5,7 +5,6 @@ import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.CentroDeDonacion;
 import com.ipn.mx.entity.Intermediario;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -19,15 +18,6 @@ public class CentroDeDonacionServiceImpl implements CentroDeDonacionService {
 
     public CentroDeDonacionServiceImpl(IntermediarioService intermediarioService) {
         this.intermediarioService = intermediarioService;
-    }
-
-    @Bean
-    public void initializeGlobalCounter() {
-        DocumentReference counterRef = db.collection("GlobalCounters").document("CentroDeDonacionCounter");
-        counterRef.set(new HashMap<String, Object>() {{
-            put("nextId", 1); // Inicializar con 1 para empezar
-        }});
-        System.out.println("Global Counter initialized.");
     }
 
     private Integer getNextId() {
@@ -50,9 +40,9 @@ public class CentroDeDonacionServiceImpl implements CentroDeDonacionService {
 
     @Override
     public CentroDeDonacion saveCentro(CentroDeDonacion centro) {
-        // Siempre asignar un nuevo ID, ignorando cualquier ID que venga en la solicitud
-        Integer newId = getNextId();
-        centro.setId(newId);
+        if (centro.getId() == null || centro.getId() == 0) {
+            centro.setId(getNextId());
+        }
         db.collection("CentroDeDonacion").document(String.valueOf(centro.getId())).set(centro);
         return centro;
     }
