@@ -1,11 +1,10 @@
 package com.ipn.mx.service;
 
 import com.ipn.mx.entity.Beneficiario;
-
 import java.util.List;
 
 public interface BeneficiarioService {
-    void saveBeneficiario(Integer centroId, Integer intermediarioId, Beneficiario beneficiario);
+    Beneficiario saveBeneficiario(Integer centroId, Integer intermediarioId, Beneficiario beneficiario);
     Beneficiario getBeneficiarioById(Integer centroId, Integer intermediarioId, Integer id);
     List<Beneficiario> getAllBeneficiarios(Integer centroId, Integer intermediarioId);
     Beneficiario updateBeneficiario(Integer centroId, Integer intermediarioId, Integer id, Beneficiario beneficiario);

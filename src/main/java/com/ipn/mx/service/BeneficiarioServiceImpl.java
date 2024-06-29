@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 @Service
 public class BeneficiarioServiceImpl implements BeneficiarioService {
@@ -48,9 +47,9 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
             throw new RuntimeException("Error al obtener el siguiente ID", e);
         }
     }
-    
+
     @Override
-    public void saveBeneficiario(Integer centroId, Integer intermediarioId, Beneficiario beneficiario) {
+    public Beneficiario saveBeneficiario(Integer centroId, Integer intermediarioId, Beneficiario beneficiario) {
         if (beneficiario.getId() == null) {
             beneficiario.setId(getNextId());
         }
@@ -73,30 +72,6 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
             throw new RuntimeException("Error al verificar el PersonaId", e);
         }
 
-        // Validar que los DonadorIds pertenezcan al rol de donador y obtener los IDs correctos
-        List<Integer> validDonadorIds = new ArrayList<>();
-        for (Integer donadorId : beneficiario.getDonadorIds()) {
-            DocumentReference donadorRef = db.collection("CentroDeDonacion").document(String.valueOf(centroId))
-                    .collection("Intermediario").document(String.valueOf(intermediarioId))
-                    .collection("Donador").document(String.valueOf(donadorId));
-            ApiFuture<DocumentSnapshot> futureDonador = donadorRef.get();
-            try {
-                DocumentSnapshot donadorDocument = futureDonador.get();
-                if (donadorDocument.exists()) {
-                    validDonadorIds.add(donadorId);
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Error al verificar los DonadorIds", e);
-            }
-        }
-
-        if (validDonadorIds.size() != beneficiario.getDonadorIds().size()) {
-            throw new IllegalArgumentException("Uno o más DonadorIds no corresponden a donadores válidos.");
-        }
-
-        beneficiario.setDonadorIds(validDonadorIds);
-
         db.collection("CentroDeDonacion").document(String.valueOf(centroId))
             .collection("Intermediario").document(String.valueOf(intermediarioId))
             .collection("Beneficiario").document(String.valueOf(beneficiario.getId())).set(beneficiario);
@@ -105,6 +80,8 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
         HashMap<String, Object> personaMap = new HashMap<>();
         personaMap.put("beneficiarioId", beneficiario.getId());
         mapRef.set(personaMap);
+
+        return beneficiario;
     }
 
     @Override
@@ -238,7 +215,7 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
             e.printStackTrace();
         }
     }
-    
+
     @Override
     public List<Beneficiario> getBeneficiariosByIntermediarioId(Integer centroId, Integer intermediarioId) {
         List<Beneficiario> beneficiarios = new ArrayList<>();

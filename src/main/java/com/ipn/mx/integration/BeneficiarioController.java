@@ -1,4 +1,5 @@
 package com.ipn.mx.integration;
+
 import com.ipn.mx.entity.Beneficiario;
 import com.ipn.mx.service.BeneficiarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,9 @@ public class BeneficiarioController {
     @PostMapping
     public ResponseEntity<Beneficiario> createBeneficiario(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @RequestBody Beneficiario beneficiario) {
         try {
-        	beneficiario.setId(null); // Se asegura de que el ID sea asignado automáticamente
-            beneficiarioService.saveBeneficiario(centroId, intermediarioId, beneficiario);
-            return new ResponseEntity<>(beneficiario, HttpStatus.CREATED);
+            beneficiario.setId(null); // Se asegura de que el ID sea asignado automáticamente
+            Beneficiario savedBeneficiario = beneficiarioService.saveBeneficiario(centroId, intermediarioId, beneficiario);
+            return new ResponseEntity<>(savedBeneficiario, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
