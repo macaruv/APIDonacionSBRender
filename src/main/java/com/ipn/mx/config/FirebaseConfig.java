@@ -15,11 +15,11 @@ import java.net.URL;
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.config.url}")
+    @Value("${firebase.config.path}")
     private String firebaseConfigUrl;
 
     @Bean
-    public FirebaseApp firebaseApp() throws Exception {
+    public FirebaseApp createFirebaseApp() throws Exception {
         InputStream serviceAccount = new URL(firebaseConfigUrl).openStream();
 
         FirebaseOptions options = new FirebaseOptions.Builder()
@@ -30,7 +30,7 @@ public class FirebaseConfig {
     }
 
     @Bean
-    public Firestore firestore() {
-        return FirestoreClient.getFirestore();
+    public Firestore firestore(FirebaseApp firebaseApp) {
+        return FirestoreClient.getFirestore(firebaseApp);
     }
 }
