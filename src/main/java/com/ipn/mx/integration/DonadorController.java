@@ -20,9 +20,9 @@ public class DonadorController {
     @PostMapping
     public ResponseEntity<Donador> createDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @RequestBody Donador donador) {
         try {
-        	donador.setId(null); // Se asegura de que el ID sea asignado automáticamente
-            donadorService.saveDonador(centroId, intermediarioId, donador);
-            return new ResponseEntity<>(donador, HttpStatus.CREATED);
+            donador.setId(null); // Se asegura de que el ID sea asignado automáticamente
+            Donador savedDonador = donadorService.saveDonador(centroId, intermediarioId, donador);
+            return new ResponseEntity<>(savedDonador, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -43,8 +43,8 @@ public class DonadorController {
     @PutMapping("/{id}")
     public ResponseEntity<Donador> updateDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @PathVariable Integer id, @RequestBody Donador donador) {
         try {
-            donadorService.updateDonador(centroId, intermediarioId, id, donador);
-            return new ResponseEntity<>(donador, HttpStatus.OK);
+            Donador updatedDonador = donadorService.updateDonador(centroId, intermediarioId, id, donador);
+            return new ResponseEntity<>(updatedDonador, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

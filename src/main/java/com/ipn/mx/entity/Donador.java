@@ -2,6 +2,7 @@ package com.ipn.mx.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.google.cloud.firestore.annotation.PropertyName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,8 @@ import java.util.List;
 @Builder
 public class Donador {
 
-	@JsonIgnore
+	@JsonProperty(value = "id", access = Access.READ_ONLY)
+	@PropertyName("id")
     private Integer id;
 
     @JsonProperty("TipoDeSangre")
@@ -35,11 +37,11 @@ public class Donador {
     @PropertyName("UltimaVacuna")
     private String ultimaVacuna;
 
-    @JsonProperty("BeneficiarioIds")
+    @JsonProperty(value = "BeneficiarioIds",access = Access.READ_ONLY)
     @PropertyName("BeneficiarioIds")
     private List<Integer> beneficiarioIds; // Lista de IDs de Beneficiarios
 
-    @JsonProperty("PersonaId")
+    @JsonProperty(value ="PersonaId",access = Access.READ_ONLY)
     @PropertyName("PersonaId")
     private Integer personaId; // ID de la Persona asociada
 }

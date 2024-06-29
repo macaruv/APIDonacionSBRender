@@ -1,12 +1,7 @@
 package com.ipn.mx.service;
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.Donador;
 import com.ipn.mx.entity.Persona;
@@ -14,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,11 +23,11 @@ public class DonadorServiceImpl implements DonadorService {
     @Autowired
     private PersonaService personaService;
 
-    @Bean
+    @PostConstruct
     public void initializeDonadorCounter() {
         DocumentReference counterRef = db.collection("GlobalCounters").document("DonadorCounter");
         counterRef.set(new HashMap<String, Object>() {{
-            put("nextId", 1); // Inicializar con 1 para empezar
+            put("nextId", 1);
         }});
         System.out.println("Global Counter para Donador inicializado.");
     }
@@ -55,7 +51,7 @@ public class DonadorServiceImpl implements DonadorService {
     }
 
     @Override
-    public void saveDonador(Integer centroId, Integer intermediarioId, Donador donador) {
+    public Donador saveDonador(Integer centroId, Integer intermediarioId, Donador donador) {
         if (donador.getId() == null) {
             donador.setId(getNextId());
         }
@@ -79,7 +75,6 @@ public class DonadorServiceImpl implements DonadorService {
             throw new RuntimeException("Error al verificar el PersonaId", e);
         }
 
-//        donador.setIntermediarioId(intermediarioId); // Asignar el intermediarioId al donador internamente
         db.collection("CentroDeDonacion").document(String.valueOf(centroId))
             .collection("Intermediario").document(String.valueOf(intermediarioId))
             .collection("Donador").document(String.valueOf(donador.getId())).set(donador);
@@ -88,7 +83,10 @@ public class DonadorServiceImpl implements DonadorService {
         HashMap<String, Object> personaMap = new HashMap<>();
         personaMap.put("donadorId", donador.getId());
         personaMapRef.set(personaMap);
+
+        return donador;
     }
+
 
     @Override
     public Donador getDonadorById(Integer centroId, Integer intermediarioId, Integer id) {
@@ -134,7 +132,6 @@ public class DonadorServiceImpl implements DonadorService {
             DocumentSnapshot document = future.get();
             if (document.exists()) {
                 donador.setId(id); // Asegurar que el Id se mantenga
-//                donador.setIntermediarioId(intermediarioId); // Asegurar que el intermediarioId se mantenga al actualizar
                 docRef.set(donador);
                 return donador;
             }
@@ -222,7 +219,7 @@ public class DonadorServiceImpl implements DonadorService {
             e.printStackTrace();
         }
     }
-    
+
     @Override
     public List<Donador> getDonadoresByIntermediarioId(Integer centroId, Integer intermediarioId) {
         List<Donador> donadores = new ArrayList<>();
