@@ -7,9 +7,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
-import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.Intermediario;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -106,7 +104,7 @@ public class IntermediarioServiceImpl implements IntermediarioService {
         try {
             DocumentSnapshot document = future.get();
             if (document.exists()) {
-            	intermediario.setId(id);
+                intermediario.setId(id);
                 intermediario.setCentroId(centroId); // Asegurar que el centroId se mantenga al actualizar
                 docRef.set(intermediario);
                 return intermediario;
