@@ -20,9 +20,9 @@ public class DonadorController {
     @PostMapping
     public ResponseEntity<Donador> createDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @RequestBody Donador donador) {
         try {
-            donador.setId(null); // Se asegura de que el ID sea asignado automáticamente
-            Donador nuevoDonador = donadorService.saveDonador(centroId, intermediarioId, donador);
-            return new ResponseEntity<>(nuevoDonador, HttpStatus.CREATED);
+            donador.setId(null); 
+            Donador createdDonador = donadorService.saveDonador(centroId, intermediarioId, donador);
+            return new ResponseEntity<>(createdDonador, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -49,6 +49,8 @@ public class DonadorController {
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -90,7 +92,7 @@ public class DonadorController {
     public ResponseEntity<HttpStatus> removeBeneficiarioFromDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @PathVariable Integer donadorId, @PathVariable Integer beneficiarioId) {
         try {
             donadorService.removeBeneficiarioFromDonador(centroId, intermediarioId, donadorId, beneficiarioId);
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

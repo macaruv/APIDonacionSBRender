@@ -6,7 +6,6 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.Donador;
 import com.ipn.mx.entity.Persona;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -56,13 +55,11 @@ public class DonadorServiceImpl implements DonadorService {
             donador.setId(getNextId());
         }
 
-        // Validar que el PersonaId sea de un donador
         Persona persona = personaService.getPersonaById(donador.getPersonaId());
         if (persona == null || !"Donador".equals(persona.getRol())) {
             throw new IllegalArgumentException("El PersonaId proporcionado no es válido o no corresponde a un donador.");
         }
 
-        // Verificar que el PersonaId no esté asociado a otro donador
         DocumentReference personaMapRef = db.collection("PersonaDonadorMap").document(String.valueOf(donador.getPersonaId()));
         ApiFuture<DocumentSnapshot> future = personaMapRef.get();
         try {
@@ -75,32 +72,16 @@ public class DonadorServiceImpl implements DonadorService {
             throw new RuntimeException("Error al verificar el PersonaId", e);
         }
 
-        // Validar que los BeneficiarioIds existan y sean válidos
-        List<Integer> validBeneficiarioIds = new ArrayList<>();
-        for (Integer beneficiarioId : donador.getBeneficiarioIds()) {
-            Persona beneficiarioPersona = personaService.getPersonaById(beneficiarioId);
-            if (beneficiarioPersona != null && "Beneficiario".equals(beneficiarioPersona.getRol())) {
-                validBeneficiarioIds.add(beneficiarioId);
-            } else {
-                throw new IllegalArgumentException("Uno o más BeneficiarioIds no corresponden a beneficiarios válidos.");
-            }
-        }
-
-        donador.setBeneficiarioIds(validBeneficiarioIds);
-
         db.collection("CentroDeDonacion").document(String.valueOf(centroId))
             .collection("Intermediario").document(String.valueOf(intermediarioId))
             .collection("Donador").document(String.valueOf(donador.getId())).set(donador);
 
-        // Guardar la asociación en PersonaDonadorMap
         HashMap<String, Object> personaMap = new HashMap<>();
         personaMap.put("donadorId", donador.getId());
         personaMapRef.set(personaMap);
 
         return donador;
     }
-
-
 
     @Override
     public Donador getDonadorById(Integer centroId, Integer intermediarioId, Integer id) {
@@ -145,7 +126,7 @@ public class DonadorServiceImpl implements DonadorService {
         try {
             DocumentSnapshot document = future.get();
             if (document.exists()) {
-                donador.setId(id); // Asegurar que el Id se mantenga
+                donador.setId(id); 
                 docRef.set(donador);
                 return donador;
             }
@@ -169,10 +150,8 @@ public class DonadorServiceImpl implements DonadorService {
                 db.collection("DeletedDonador").document(String.valueOf(donador.getId())).set(donador);
                 docRef.delete().get();
 
-                // Eliminar la asociación en PersonaDonadorMap
                 db.collection("PersonaDonadorMap").document(String.valueOf(donador.getPersonaId())).delete();
 
-                // Eliminar la persona asociada
                 if (donador.getPersonaId() != null) {
                     personaService.deletePersonaById(donador.getPersonaId());
                 }
@@ -188,7 +167,6 @@ public class DonadorServiceImpl implements DonadorService {
 
     @Override
     public void addBeneficiarioToDonador(Integer centroId, Integer intermediarioId, Integer donadorId, Integer beneficiarioId) {
-        // Validar que el PersonaId sea de un beneficiario
         Persona persona = personaService.getPersonaById(beneficiarioId);
         if (persona == null || !"Beneficiario".equals(persona.getRol())) {
             throw new IllegalArgumentException("El PersonaId proporcionado no es válido o no corresponde a un beneficiario.");
