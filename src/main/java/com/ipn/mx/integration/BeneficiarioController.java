@@ -11,7 +11,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/centros/{centroId}/intermediarios/{intermediarioId}/beneficiarios")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
 public class BeneficiarioController {
 
     @Autowired

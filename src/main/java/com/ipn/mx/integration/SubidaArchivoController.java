@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/api/files")
+@CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
 public class SubidaArchivoController {
 
     // Directorio donde se guardarán los archivos
