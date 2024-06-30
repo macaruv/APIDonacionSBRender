@@ -21,8 +21,8 @@ public class DonadorController {
     public ResponseEntity<Donador> createDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @RequestBody Donador donador) {
         try {
             donador.setId(null); // Se asegura de que el ID sea asignado automáticamente
-            Donador savedDonador = donadorService.saveDonador(centroId, intermediarioId, donador);
-            return new ResponseEntity<>(savedDonador, HttpStatus.CREATED);
+            Donador nuevoDonador = donadorService.saveDonador(centroId, intermediarioId, donador);
+            return new ResponseEntity<>(nuevoDonador, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -40,16 +40,6 @@ public class DonadorController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<Donador>> getAllDonadores(@PathVariable Integer centroId, @PathVariable Integer intermediarioId) {
-        List<Donador> donadores = donadorService.getAllDonadores(centroId, intermediarioId);
-        if (!donadores.isEmpty()) {
-            return new ResponseEntity<>(donadores, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<Donador> updateDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @PathVariable Integer id, @RequestBody Donador donador) {
         try {
@@ -59,8 +49,6 @@ public class DonadorController {
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -73,6 +61,16 @@ public class DonadorController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Donador>> getAllDonadores(@PathVariable Integer centroId, @PathVariable Integer intermediarioId) {
+        List<Donador> donadores = donadorService.getAllDonadores(centroId, intermediarioId);
+        if (!donadores.isEmpty()) {
+            return new ResponseEntity<>(donadores, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
 
