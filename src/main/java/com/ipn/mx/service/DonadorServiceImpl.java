@@ -75,26 +75,15 @@ public class DonadorServiceImpl implements DonadorService {
             throw new RuntimeException("Error al verificar el PersonaId", e);
         }
 
-        // Validar que los BeneficiarioIds existan
+        // Validar que los BeneficiarioIds existan y sean válidos
         List<Integer> validBeneficiarioIds = new ArrayList<>();
         for (Integer beneficiarioId : donador.getBeneficiarioIds()) {
-            DocumentReference beneficiarioRef = db.collection("CentroDeDonacion").document(String.valueOf(centroId))
-                    .collection("Intermediario").document(String.valueOf(intermediarioId))
-                    .collection("Beneficiario").document(String.valueOf(beneficiarioId));
-            ApiFuture<DocumentSnapshot> futureBeneficiario = beneficiarioRef.get();
-            try {
-                DocumentSnapshot beneficiarioDocument = futureBeneficiario.get();
-                if (beneficiarioDocument.exists()) {
-                    validBeneficiarioIds.add(beneficiarioId);
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Error al verificar los BeneficiarioIds", e);
+            Persona beneficiarioPersona = personaService.getPersonaById(beneficiarioId);
+            if (beneficiarioPersona != null && "Beneficiario".equals(beneficiarioPersona.getRol())) {
+                validBeneficiarioIds.add(beneficiarioId);
+            } else {
+                throw new IllegalArgumentException("Uno o más BeneficiarioIds no corresponden a beneficiarios válidos.");
             }
-        }
-
-        if (validBeneficiarioIds.size() != donador.getBeneficiarioIds().size()) {
-            throw new IllegalArgumentException("Uno o más BeneficiarioIds no corresponden a beneficiarios válidos.");
         }
 
         donador.setBeneficiarioIds(validBeneficiarioIds);
@@ -110,6 +99,7 @@ public class DonadorServiceImpl implements DonadorService {
 
         return donador;
     }
+
 
 
     @Override
