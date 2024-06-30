@@ -5,7 +5,7 @@ import com.ipn.mx.entity.Persona;
 import java.util.List;
 
 public interface PersonaService {
-    void savePersona(Persona persona);
+	Persona savePersona(Persona persona);
     Persona getPersonaById(Integer id);
     List<Persona> getAllPersonas();
     Persona updatePersona(Integer id, Persona persona);

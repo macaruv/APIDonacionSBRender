@@ -21,10 +21,8 @@ public class PersonaController {
     public ResponseEntity<Persona> createPersona(@RequestBody Persona persona) {
         try {
             persona.setId(null); // Se asegura de que el ID sea asignado automáticamente
-            personaService.savePersona(persona);
-            return new ResponseEntity<>(persona, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            Persona createdPersona = personaService.savePersona(persona);
+            return new ResponseEntity<>(createdPersona, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -43,10 +41,8 @@ public class PersonaController {
     @PutMapping("/{id}")
     public ResponseEntity<Persona> updatePersona(@PathVariable Integer id, @RequestBody Persona persona) {
         try {
-            personaService.updatePersona(id, persona);
-            return new ResponseEntity<>(persona, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            Persona updatedPersona = personaService.updatePersona(id, persona);
+            return new ResponseEntity<>(updatedPersona, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

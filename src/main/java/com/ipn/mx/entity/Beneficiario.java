@@ -28,7 +28,7 @@ public class Beneficiario {
     @PropertyName("DonadorIds")
     private List<Integer> donadorIds; // Lista de IDs de Donadores
 
-    @JsonProperty(value = "PersonaId", access = Access.READ_ONLY)
+    @JsonProperty("PersonaId")
     @PropertyName("PersonaId")
     private Integer personaId; // ID de la Persona asociada
 }

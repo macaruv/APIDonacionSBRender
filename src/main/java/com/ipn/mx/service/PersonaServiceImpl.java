@@ -2,29 +2,31 @@ package com.ipn.mx.service;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
-import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.Persona;
-
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class PersonaServiceImpl implements PersonaService {
 
-    private final Firestore db = FirestoreClient.getFirestore();
+    private final Firestore db;
 
-    @Bean
-    public void initializePersonaCounter() {
-        DocumentReference counterRef = db.collection("GlobalCounters").document("PersonaCounter");
-        counterRef.set(new HashMap<String, Object>() {{
-            put("nextId", 1); // Inicializar con 1 para empezar
-        }});
-        System.out.println("Global Counter for Persona initialized.");
+    @Autowired
+    public PersonaServiceImpl(Firestore db) {
+        this.db = db;
+    }
+
+    @Override
+    public Persona savePersona(Persona persona) {
+        if (persona.getId() == null) {
+            persona.setId(getNextId());
+        }
+        db.collection("Persona").document(String.valueOf(persona.getId())).set(persona);
+        return persona;
     }
 
     private Integer getNextId() {
@@ -43,19 +45,6 @@ public class PersonaServiceImpl implements PersonaService {
             e.printStackTrace();
             throw new RuntimeException("Error al obtener el siguiente ID", e);
         }
-    }
-
-    @Override
-    public void savePersona(Persona persona) {
-        // Validar el campo rol
-        if (!"Donador".equals(persona.getRol()) && !"Beneficiario".equals(persona.getRol())) {
-            throw new IllegalArgumentException("El rol debe ser 'Donador' o 'Beneficiario'.");
-        }
-        
-        if (persona.getId() == null) {
-            persona.setId(getNextId());
-        }
-        db.collection("Persona").document(String.valueOf(persona.getId())).set(persona);
     }
 
     @Override
@@ -90,17 +79,12 @@ public class PersonaServiceImpl implements PersonaService {
 
     @Override
     public Persona updatePersona(Integer id, Persona persona) {
-        // Validar el campo rol
-        if (!"Donador".equals(persona.getRol()) && !"Beneficiario".equals(persona.getRol())) {
-            throw new IllegalArgumentException("El rol debe ser 'Donador' o 'Beneficiario'.");
-        }
-
         DocumentReference docRef = db.collection("Persona").document(String.valueOf(id));
         ApiFuture<DocumentSnapshot> future = docRef.get();
         try {
             DocumentSnapshot document = future.get();
             if (document.exists()) {
-                persona.setId(id); // Asegurar que el Id se mantenga
+                persona.setId(id);
                 docRef.set(persona);
                 return persona;
             }
@@ -112,22 +96,17 @@ public class PersonaServiceImpl implements PersonaService {
 
     @Override
     public void deletePersonaById(Integer id) {
+        DocumentReference docRef = db.collection("Persona").document(String.valueOf(id));
         try {
-            DocumentReference docRef = db.collection("Persona").document(String.valueOf(id));
             ApiFuture<DocumentSnapshot> future = docRef.get();
             DocumentSnapshot document = future.get();
-
             if (document.exists()) {
                 Persona persona = document.toObject(Persona.class);
                 db.collection("DeletedPersona").document(String.valueOf(persona.getId())).set(persona);
                 docRef.delete().get();
-                System.out.println("Deleted document with ID: " + id);
-            } else {
-                System.out.println("No document found with ID: " + id);
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            System.out.println("Error deleting document with ID: " + id);
         }
     }
 }

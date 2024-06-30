@@ -1,33 +1,60 @@
 package com.ipn.mx.service;
+
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
-import com.google.firebase.cloud.FirestoreClient;
 import com.ipn.mx.entity.Beneficiario;
-import com.ipn.mx.entity.Persona;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class BeneficiarioServiceImpl implements BeneficiarioService {
 
-    private final Firestore db = FirestoreClient.getFirestore();
+    private final Firestore db;
 
     @Autowired
-    private PersonaService personaService;
+    public BeneficiarioServiceImpl(Firestore db) {
+        this.db = db;
+    }
 
-    @Bean
-    public void initializeBeneficiarioCounter() {
-        DocumentReference counterRef = db.collection("GlobalCounters").document("BeneficiarioCounter");
-        counterRef.set(new HashMap<String, Object>() {{
-            put("nextId", 1); // Inicializar con 1 para empezar
-        }});
-        System.out.println("Global Counter para Beneficiario inicializado.");
+    @Override
+    public Beneficiario saveBeneficiario(Integer centroId, Integer intermediarioId, Beneficiario beneficiario) {
+        if (beneficiario.getId() == null) {
+            beneficiario.setId(getNextId());
+        }
+
+        if (!validatePersonaId(beneficiario.getPersonaId())) {
+            throw new IllegalArgumentException("PersonaId no existe o no tiene el rol adecuado");
+        }
+
+        for (Integer donadorId : beneficiario.getDonadorIds()) {
+            if (!validatePersonaId(donadorId)) {
+                throw new IllegalArgumentException("DonadorId " + donadorId + " no existe o no tiene el rol adecuado");
+            }
+        }
+
+        db.collection("CentroDeDonacion").document(String.valueOf(centroId))
+            .collection("Intermediario").document(String.valueOf(intermediarioId))
+            .collection("Beneficiario").document(String.valueOf(beneficiario.getId())).set(beneficiario);
+        return beneficiario;
+    }
+
+    private boolean validatePersonaId(Integer personaId) {
+        DocumentReference docRef = db.collection("Persona").document(String.valueOf(personaId));
+        ApiFuture<DocumentSnapshot> future = docRef.get();
+        try {
+            DocumentSnapshot document = future.get();
+            if (document.exists()) {
+                String rol = document.getString("rol");
+                return "Donador".equals(rol) || "Beneficiario".equals(rol);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private Integer getNextId() {
@@ -46,42 +73,6 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
             e.printStackTrace();
             throw new RuntimeException("Error al obtener el siguiente ID", e);
         }
-    }
-
-    @Override
-    public Beneficiario saveBeneficiario(Integer centroId, Integer intermediarioId, Beneficiario beneficiario) {
-        if (beneficiario.getId() == null) {
-            beneficiario.setId(getNextId());
-        }
-
-        // Validar que el PersonaId sea de un beneficiario
-        Persona persona = personaService.getPersonaById(beneficiario.getPersonaId());
-        if (persona == null || !"Beneficiario".equals(persona.getRol())) {
-            throw new IllegalArgumentException("El PersonaId proporcionado no es válido o no corresponde a un beneficiario.");
-        }
-
-        // Verificar que el PersonaId no esté asociado a otro beneficiario
-        DocumentReference mapRef = db.collection("PersonaBeneficiarioMap").document(String.valueOf(beneficiario.getPersonaId()));
-        ApiFuture<DocumentSnapshot> futureMap = mapRef.get();
-        try {
-            if (futureMap.get().exists()) {
-                throw new IllegalArgumentException("El PersonaId proporcionado ya está asociado a otro beneficiario.");
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error al verificar el PersonaId", e);
-        }
-
-        db.collection("CentroDeDonacion").document(String.valueOf(centroId))
-            .collection("Intermediario").document(String.valueOf(intermediarioId))
-            .collection("Beneficiario").document(String.valueOf(beneficiario.getId())).set(beneficiario);
-
-        // Guardar la asociación en PersonaBeneficiarioMap
-        HashMap<String, Object> personaMap = new HashMap<>();
-        personaMap.put("beneficiarioId", beneficiario.getId());
-        mapRef.set(personaMap);
-
-        return beneficiario;
     }
 
     @Override
@@ -127,7 +118,7 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
         try {
             DocumentSnapshot document = future.get();
             if (document.exists()) {
-                beneficiario.setId(id); // Asegurar que el Id se mantenga
+                beneficiario.setId(id);
                 docRef.set(beneficiario);
                 return beneficiario;
             }
@@ -139,43 +130,24 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
 
     @Override
     public void deleteBeneficiarioById(Integer centroId, Integer intermediarioId, Integer id) {
+        DocumentReference docRef = db.collection("CentroDeDonacion").document(String.valueOf(centroId))
+            .collection("Intermediario").document(String.valueOf(intermediarioId))
+            .collection("Beneficiario").document(String.valueOf(id));
         try {
-            DocumentReference docRef = db.collection("CentroDeDonacion").document(String.valueOf(centroId))
-                .collection("Intermediario").document(String.valueOf(intermediarioId))
-                .collection("Beneficiario").document(String.valueOf(id));
             ApiFuture<DocumentSnapshot> future = docRef.get();
             DocumentSnapshot document = future.get();
-
             if (document.exists()) {
                 Beneficiario beneficiario = document.toObject(Beneficiario.class);
                 db.collection("DeletedBeneficiario").document(String.valueOf(beneficiario.getId())).set(beneficiario);
                 docRef.delete().get();
-
-                // Eliminar la asociación en PersonaBeneficiarioMap
-                db.collection("PersonaBeneficiarioMap").document(String.valueOf(beneficiario.getPersonaId())).delete();
-
-                // Eliminar la persona asociada
-                if (beneficiario.getPersonaId() != null) {
-                    personaService.deletePersonaById(beneficiario.getPersonaId());
-                }
-                System.out.println("Deleted document with ID: " + id);
-            } else {
-                System.out.println("No document found with ID: " + id);
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            System.out.println("Error deleting document with ID: " + id);
         }
     }
 
     @Override
     public void addDonadorToBeneficiario(Integer centroId, Integer intermediarioId, Integer beneficiarioId, Integer donadorId) {
-        // Validar que el PersonaId sea de un donador
-        Persona persona = personaService.getPersonaById(donadorId);
-        if (persona == null || !"Donador".equals(persona.getRol())) {
-            throw new IllegalArgumentException("El PersonaId proporcionado no es válido o no corresponde a un donador.");
-        }
-
         DocumentReference docRef = db.collection("CentroDeDonacion").document(String.valueOf(centroId))
             .collection("Intermediario").document(String.valueOf(intermediarioId))
             .collection("Beneficiario").document(String.valueOf(beneficiarioId));
@@ -185,9 +157,12 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
             if (document.exists()) {
                 Beneficiario beneficiario = document.toObject(Beneficiario.class);
                 List<Integer> donadorIds = beneficiario.getDonadorIds();
-                if (!donadorIds.contains(donadorId)) {
+                if (!donadorIds.contains(donadorId) && validatePersonaId(donadorId)) {
                     donadorIds.add(donadorId);
-                    docRef.update("donadorIds", donadorIds);
+                    beneficiario.setDonadorIds(donadorIds);
+                    docRef.set(beneficiario);
+                } else {
+                    throw new IllegalArgumentException("DonadorId no existe o no tiene el rol adecuado");
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
@@ -208,7 +183,8 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
                 List<Integer> donadorIds = beneficiario.getDonadorIds();
                 if (donadorIds.contains(donadorId)) {
                     donadorIds.remove(donadorId);
-                    docRef.update("donadorIds", donadorIds);
+                    beneficiario.setDonadorIds(donadorIds);
+                    docRef.set(beneficiario);
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
@@ -218,23 +194,6 @@ public class BeneficiarioServiceImpl implements BeneficiarioService {
 
     @Override
     public List<Beneficiario> getBeneficiariosByIntermediarioId(Integer centroId, Integer intermediarioId) {
-        List<Beneficiario> beneficiarios = new ArrayList<>();
-        CollectionReference beneficiariosRef = db.collection("CentroDeDonacion")
-                .document(String.valueOf(centroId))
-                .collection("Intermediario")
-                .document(String.valueOf(intermediarioId))
-                .collection("Beneficiario");
-        try {
-            ApiFuture<QuerySnapshot> future = beneficiariosRef.get();
-            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-            for (DocumentSnapshot document : documents) {
-                Beneficiario beneficiario = document.toObject(Beneficiario.class);
-                beneficiario.setId(Integer.parseInt(document.getId()));
-                beneficiarios.add(beneficiario);
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        return beneficiarios;
+        return getAllBeneficiarios(centroId, intermediarioId);
     }
 }
