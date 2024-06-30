@@ -55,6 +55,7 @@ public class DonadorServiceImpl implements DonadorService {
         if (donador.getId() == null) {
             donador.setId(getNextId());
         }
+
         // Validar que el PersonaId sea de un donador
         Persona persona = personaService.getPersonaById(donador.getPersonaId());
         if (persona == null || !"Donador".equals(persona.getRol())) {

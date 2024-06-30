@@ -37,11 +37,11 @@ public class Donador {
     @PropertyName("UltimaVacuna")
     private String ultimaVacuna;
 
-    @JsonProperty(value = "BeneficiarioIds",access = Access.READ_ONLY)
+    @JsonProperty(value = "BeneficiarioIds")
     @PropertyName("BeneficiarioIds")
     private List<Integer> beneficiarioIds; // Lista de IDs de Beneficiarios
 
-    @JsonProperty(value ="PersonaId",access = Access.READ_ONLY)
+    @JsonProperty(value ="PersonaId")
     @PropertyName("PersonaId")
     private Integer personaId; // ID de la Persona asociada
 }
