@@ -10,4 +10,5 @@ public interface PersonaService {
     List<Persona> getAllPersonas();
     Persona updatePersona(Integer id, Persona persona);
     void deletePersonaById(Integer id);
+    List<Persona> findByRol(String rol);
 }

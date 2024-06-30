@@ -68,4 +68,14 @@ public class PersonaController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
+    
+    @GetMapping("/rol/{rol}")
+    public ResponseEntity<List<Persona>> getPersonasPorRol(@PathVariable String rol) {
+        List<Persona> personas = personaService.findByRol(rol);
+        if (!personas.isEmpty()) {
+            return new ResponseEntity<>(personas, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+    }
 }

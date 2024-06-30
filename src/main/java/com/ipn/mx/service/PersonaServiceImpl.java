@@ -109,4 +109,22 @@ public class PersonaServiceImpl implements PersonaService {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public List<Persona> findByRol(String rol) {
+        List<Persona> personas = new ArrayList<>();
+        CollectionReference personasRef = db.collection("Persona");
+        Query query = personasRef.whereEqualTo("rol", rol);
+        ApiFuture<QuerySnapshot> querySnapshot = query.get();
+        try {
+            List<QueryDocumentSnapshot> documents = querySnapshot.get().getDocuments();
+            for (QueryDocumentSnapshot document : documents) {
+                personas.add(document.toObject(Persona.class));
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error al obtener personas por rol", e);
+        }
+        return personas;
+    }
 }
