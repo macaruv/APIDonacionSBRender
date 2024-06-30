@@ -20,11 +20,9 @@ public class DonadorController {
     @PostMapping
     public ResponseEntity<Donador> createDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @RequestBody Donador donador) {
         try {
-            donador.setId(null); 
+            donador.setId(null); // Se asegura de que el ID sea asignado automáticamente
             Donador createdDonador = donadorService.saveDonador(centroId, intermediarioId, donador);
             return new ResponseEntity<>(createdDonador, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -44,13 +42,7 @@ public class DonadorController {
     public ResponseEntity<Donador> updateDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @PathVariable Integer id, @RequestBody Donador donador) {
         try {
             Donador updatedDonador = donadorService.updateDonador(centroId, intermediarioId, id, donador);
-            if (updatedDonador != null) {
-                return new ResponseEntity<>(updatedDonador, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(updatedDonador, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -67,34 +59,12 @@ public class DonadorController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Donador>> getAllDonadores(@PathVariable Integer centroId, @PathVariable Integer intermediarioId) {
-        List<Donador> donadores = donadorService.getAllDonadores(centroId, intermediarioId);
+    public ResponseEntity<List<Donador>> getDonadoresByIntermediarioId(@PathVariable Integer centroId, @PathVariable Integer intermediarioId) {
+        List<Donador> donadores = donadorService.getDonadoresByIntermediarioId(centroId, intermediarioId);
         if (!donadores.isEmpty()) {
             return new ResponseEntity<>(donadores, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-    }
-
-    @PostMapping("/{donadorId}/beneficiarios/{beneficiarioId}")
-    public ResponseEntity<HttpStatus> addBeneficiarioToDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @PathVariable Integer donadorId, @PathVariable Integer beneficiarioId) {
-        try {
-            donadorService.addBeneficiarioToDonador(centroId, intermediarioId, donadorId, beneficiarioId);
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @DeleteMapping("/{donadorId}/beneficiarios/{beneficiarioId}")
-    public ResponseEntity<HttpStatus> removeBeneficiarioFromDonador(@PathVariable Integer centroId, @PathVariable Integer intermediarioId, @PathVariable Integer donadorId, @PathVariable Integer beneficiarioId) {
-        try {
-            donadorService.removeBeneficiarioFromDonador(centroId, intermediarioId, donadorId, beneficiarioId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
