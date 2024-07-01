@@ -1,17 +1,19 @@
 package com.ipn.mx.integration;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/files")
@@ -22,11 +24,9 @@ public class SubidaArchivoController {
     private static String UPLOAD_DIR = "uploads/";
 
     @PostMapping("/upload")
-    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            response.put("message", "Por favor, seleccione un archivo para subir");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Por favor, seleccione un archivo para subir", HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -41,12 +41,10 @@ public class SubidaArchivoController {
             Path path = Paths.get(UPLOAD_DIR + file.getOriginalFilename());
             Files.write(path, bytes);
 
-            response.put("message", "Archivo subido correctamente: " + file.getOriginalFilename());
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return new ResponseEntity<>("Archivo subido correctamente: " + file.getOriginalFilename(), HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
-            response.put("message", "Error al subir el archivo: " + e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error al subir el archivo: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -62,5 +60,27 @@ public class SubidaArchivoController {
         } else {
             return new ResponseEntity<>(new String[]{}, HttpStatus.OK);
         }
+    }
+
+    @GetMapping("/download/{filename}")
+    public ResponseEntity<Object> downloadFile(@PathVariable String filename) throws IOException {
+        String filePath = UPLOAD_DIR + filename;
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return new ResponseEntity<>("Archivo no encontrado", HttpStatus.NOT_FOUND);
+        }
+
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", file.getName()));
+        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        headers.add("Expires", "0");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(file.length())
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
+                .body(resource);
     }
 }
