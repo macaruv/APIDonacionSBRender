@@ -83,4 +83,19 @@ public class SubidaArchivoController {
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .body(resource);
     }
+    
+    @DeleteMapping("/delete/{filename}")
+    public ResponseEntity<String> deleteFile(@PathVariable String filename) {
+        String filePath = UPLOAD_DIR + filename;
+        File file = new File(filePath);
+        if (file.exists()) {
+            if (file.delete()) {
+                return new ResponseEntity<>("Archivo eliminado correctamente", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Error al eliminar el archivo", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>("Archivo no encontrado", HttpStatus.NOT_FOUND);
+        }
+    }
 }
