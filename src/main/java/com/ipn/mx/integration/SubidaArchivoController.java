@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/files")
@@ -20,9 +22,11 @@ public class SubidaArchivoController {
     private static String UPLOAD_DIR = "uploads/";
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+        Map<String, String> response = new HashMap<>();
         if (file.isEmpty()) {
-            return new ResponseEntity<>("Por favor, seleccione un archivo para subir", HttpStatus.BAD_REQUEST);
+            response.put("message", "Por favor, seleccione un archivo para subir");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -37,10 +41,12 @@ public class SubidaArchivoController {
             Path path = Paths.get(UPLOAD_DIR + file.getOriginalFilename());
             Files.write(path, bytes);
 
-            return new ResponseEntity<>("Archivo subido correctamente: " + file.getOriginalFilename(), HttpStatus.OK);
+            response.put("message", "Archivo subido correctamente: " + file.getOriginalFilename());
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
-            return new ResponseEntity<>("Error al subir el archivo: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            response.put("message", "Error al subir el archivo: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
