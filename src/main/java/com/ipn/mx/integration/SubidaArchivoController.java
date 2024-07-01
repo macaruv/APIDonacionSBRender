@@ -92,17 +92,17 @@ public class SubidaArchivoController {
     }
     
     @DeleteMapping("/delete/{filename}")
-    public ResponseEntity<String> deleteFile(@PathVariable String filename) {
-        String filePath = UPLOAD_DIR + filename;
-        File file = new File(filePath);
-        if (file.exists()) {
-            if (file.delete()) {
-                return new ResponseEntity<>("Archivo eliminado correctamente", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Error al eliminar el archivo", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } else {
-            return new ResponseEntity<>("Archivo no encontrado", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Map<String, String>> deleteFile(@PathVariable String filename) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            Path filePath = Paths.get(UPLOAD_DIR + filename);
+            Files.deleteIfExists(filePath);
+            response.put("message", "Archivo eliminado correctamente: " + filename);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.put("message", "Error al eliminar el archivo: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
