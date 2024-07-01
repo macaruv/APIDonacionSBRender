@@ -21,7 +21,8 @@ import java.nio.file.Paths;
 public class SubidaArchivoController {
 
     // Directorio donde se guardarán los archivos
-    private static String UPLOAD_DIR = "uploads/";
+    //private static String UPLOAD_DIR = "uploads/";
+    private static String UPLOAD_DIR = "D:/MisCosas/MisInstalaciones/SpringToolSuite4/workspace-spring-tool-suite-4-4/APIProcesoDonacion/uploads";
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
@@ -30,13 +31,13 @@ public class SubidaArchivoController {
         }
 
         try {
-            // Asegurarse de que el directorio exista
+            // Asegúrate de que el directorio exista
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
             }
 
-            // Guardar el archivo en el directorio
+            // Guarda el archivo en el directorio
             byte[] bytes = file.getBytes();
             Path path = Paths.get(UPLOAD_DIR + file.getOriginalFilename());
             Files.write(path, bytes);
