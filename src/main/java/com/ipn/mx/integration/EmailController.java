@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-@CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
+@CrossOrigin(origins = {"https://apiprocesodonacion.netlify.app"}, allowCredentials = "true")
 @RestController
 @RequestMapping("/api/email")
 public class EmailController {

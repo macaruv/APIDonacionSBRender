@@ -12,7 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/centros/{centroId}/intermediarios/{intermediarioId}/donadores")
 //@CrossOrigin(origins = "*")
-@CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
+@CrossOrigin(origins = {"https://apiprocesodonacion.netlify.app"}, allowCredentials = "true")
 public class DonadorController {
 
     @Autowired

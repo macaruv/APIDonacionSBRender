@@ -15,7 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
+@CrossOrigin(origins = {"https://apiprocesodonacion.netlify.app"}, allowCredentials = "true")
 @RequestMapping("/api/reportes")
 public class PdfController {
 
